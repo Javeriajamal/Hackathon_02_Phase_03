@@ -21,6 +21,21 @@ Phase-3 represents the culmination of the Evolution of Todo project, integrating
 - **Authentication**: JWT tokens, bcrypt password hashing
 - **DevOps**: Docker, environment management
 
+## ChatKit Integration
+
+This project integrates OpenAI ChatKit in Phase-3 to provide an conversational AI assistant that can perform full CRUD operations on tasks.
+
+The chatbot backend connects to the FastAPI task service and supports:
+
+* Creating tasks
+* Viewing tasks
+* Updating tasks
+* Deleting tasks
+* Completing tasks
+
+The assistant communicates with the backend via authenticated API calls and updates the UI in real time.
+
+
 ## Folder Structure
 
 ```

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides guidelines for Claude when working on Phase-3 of the Evolution of Todo project. Phase-3 integrates an AI chatbot assistant into the existing todo management system, enabling natural language task management capabilities.
+This document provides guidelines for Claude when working on Phase-3 of the Evolution of Todo project. Phase-3 integrates an AI chatbot assistant into the existing todo management system, enabling natural language task management capabilities.ChatKit is integrated in Phase-3 to power the AI chatbot. The backend route `/api/chatkit` connects the assistant to the FastAPI task API for real-time task CRUD operations.
 
 ## Phase-3 Goals and Constraints
 

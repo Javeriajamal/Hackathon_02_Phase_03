@@ -63,6 +63,13 @@ The primary objective of Phase-3 is to integrate natural-language chat interacti
 - Database queries must use existing models and relationships
 - Session management must leverage existing authentication middleware
 
+## AI Assistant Integration
+
+- The project includes a ChatKit-powered AI assistant that follows the system architecture rules 
+- Interacts with the task backend only through authorized API endpoints. 
+- The assistant respects authentication, data integrity, and existing CRUD workflows.
+
+
 ## 6. Phase-3 Architectural Rules
 
 ### System Architecture:

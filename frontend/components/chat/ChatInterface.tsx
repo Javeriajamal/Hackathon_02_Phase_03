@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
-import { sendMessage } from '@/services/api/chatService';
 import { ChatMessage, Conversation } from '@/types/chat';
 
 // Simple JWT utility functions
@@ -107,6 +106,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ userId: userIdProp, onTas
   const handleSendMessage = async (messageText: string) => {
     if (!messageText.trim() || isLoading || !userId) return;
 
+    // Get the auth token
+    const token = getAuthToken();
+
     // Add user message to the list
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -119,48 +121,44 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ userId: userIdProp, onTas
     setIsLoading(true);
 
     try {
-      // Send message to backend
-      const response = await sendMessage(userId, messageText, conversationId);
+      // Send message to ChatKit API using fetch
+      const response = await fetch('/api/chatkit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage], // Send the full conversation context
+          userId: userId,
+          authToken: token, // Pass the auth token for task operations
+          content: messageText
+        })
+      });
 
-      // Update conversation ID if it's the first message
-      if (!conversationId) {
-        setConversationId(response.conversation_id);
+      // Check the x-task-operation header for task updates
+      const taskOperation = response.headers.get('x-task-operation');
+      if (taskOperation && ['add_task', 'update_task', 'delete_task', 'complete_task'].includes(taskOperation)) {
+        if (onTaskUpdate) {
+          onTaskUpdate();
+        }
       }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
 
       // Add AI response to the list
       const aiMessage: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        role: 'assistant',
-        content: response.response,
-        timestamp: response.timestamp,
+        id: data.id || `ai-${Date.now()}`,
+        role: data.role || 'assistant',
+        content: data.content,
+        timestamp: data.timestamp || new Date().toISOString(),
       };
 
       setMessages(prev => [...prev, aiMessage]);
 
-      // If there are tool calls, add them as system messages
-      if (response.tool_calls && response.tool_calls.length > 0) {
-        let hasTaskOperation = false;
-
-        response.tool_calls.forEach((toolCall: any, index: number) => {
-          const toolMessage: ChatMessage = {
-            id: `tool-${Date.now()}-${index}`,
-            role: 'system',
-            content: `Used tool: ${toolCall.tool_name} with parameters: ${JSON.stringify(toolCall.parameters)}`,
-            timestamp: new Date().toISOString(),
-          };
-          setMessages(prev => [...prev, toolMessage]);
-
-          // Check if this is a task-related tool call
-          if (['add_task', 'update_task', 'delete_task', 'complete_task'].includes(toolCall.tool_name)) {
-            hasTaskOperation = true;
-          }
-        });
-
-        // Trigger task list refresh if any task-related operations occurred
-        if (hasTaskOperation && onTaskUpdate) {
-          onTaskUpdate();
-        }
-      }
     } catch (error) {
       console.error('Error sending message:', error);
 
